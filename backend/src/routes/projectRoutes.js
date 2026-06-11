@@ -11,7 +11,10 @@ import {
     deleteProjectComponent,
     getProjectConnections,
     addProjectConnection,
-    deleteProjectConnection
+    deleteProjectConnection,
+    getProjectHardware,
+    addProjectHardwareDevice,
+    removeProjectHardwareDevice
 } from "../controllers/projectController.js";
 
 const router = Router();
@@ -28,5 +31,8 @@ router.delete("/:projectId/components/:componentId", deleteProjectComponent);
 router.get("/:projectId/connections", getProjectConnections);
 router.post("/:projectId/connections", addProjectConnection);
 router.delete("/:projectId/connections/:connectionId", deleteProjectConnection);
+router.get("/:id/hardware", getProjectHardware);
+router.post("/:id/hardware", addProjectHardwareDevice);
+router.delete("/:id/hardware/:deviceId", removeProjectHardwareDevice);
 
 export default router;

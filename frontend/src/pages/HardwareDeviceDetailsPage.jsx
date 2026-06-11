@@ -4,10 +4,11 @@ import DependenciesTab from "../components/hardwareDeviceTabs/DependenciesTab.js
 import FilesTab from "../components/hardwareDeviceTabs/FilesTab.jsx";
 import GeneratorRulesTab from "../components/hardwareDeviceTabs/GeneratorRulesTab.jsx";
 import OverviewTab from "../components/hardwareDeviceTabs/OverviewTab.jsx";
+import NotesTab from "../components/hardwareDeviceTabs/NotesTab.jsx";
 import SourceCodeTab from "../components/hardwareDeviceTabs/SourceCodeTab.jsx";
 import SpecificationsTab from "../components/hardwareDeviceTabs/SpecificationsTab.jsx";
+import { addProjectHardwareDevice, fetchLibraryDevice } from "../services/libraryApi.js";
 import { normalizeLibraryDevice } from "../data/hardwareLibrary.js";
-import { fetchLibraryDevice } from "../services/libraryApi.js";
 
 const tabLinks = [
   { key: "overview", label: "Overview" },
@@ -16,6 +17,7 @@ const tabLinks = [
   { key: "source-code", label: "Source Code" },
   { key: "generator-rules", label: "Generator Rules" },
   { key: "dependencies", label: "Dependencies" },
+  { key: "notes", label: "Notes" },
 ];
 
 function HardwareDeviceDetailsPage() {
@@ -70,6 +72,16 @@ function HardwareDeviceDetailsPage() {
     navigate(`/library/hardware/${deviceId}${tabKey === "overview" ? "" : `/${tabKey}`}`);
   }
 
+  async function handleAddToProject() {
+    const response = await fetch("http://localhost:5000/api/projects");
+    const projects = response.ok ? await response.json() : [];
+    const projectNames = Array.isArray(projects) ? projects.map((project) => `${project.id}: ${project.name}`).join("\n") : "";
+    const selectedProject = window.prompt(`Select project id:\n${projectNames}`);
+    if (!selectedProject) return;
+    await addProjectHardwareDevice(selectedProject, deviceId);
+    window.alert(`Added ${device.name} to project ${selectedProject}.`);
+  }
+
   if (loading) {
     return (
       <main className="projects-page project-details-page">
@@ -109,6 +121,9 @@ function HardwareDeviceDetailsPage() {
           <div className="project-card__header">
             <h2>{device.name}</h2>
             <div className="project-card__actions">
+              <button type="button" className="project-button" onClick={handleAddToProject}>
+                Add To Project
+              </button>
               <button type="button" className="project-button project-button--primary" onClick={() => navigate(`/library/hardware/${deviceId}/edit`)}>
                 Edit Device
               </button>
@@ -138,6 +153,7 @@ function HardwareDeviceDetailsPage() {
         {activeTab === "source-code" ? <SourceCodeTab device={device} /> : null}
         {activeTab === "generator-rules" ? <GeneratorRulesTab device={device} /> : null}
         {activeTab === "dependencies" ? <DependenciesTab device={device} /> : null}
+        {activeTab === "notes" ? <NotesTab device={device} /> : null}
       </section>
     </main>
   );

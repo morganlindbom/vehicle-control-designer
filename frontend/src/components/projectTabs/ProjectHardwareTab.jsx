@@ -1,19 +1,67 @@
-function ProjectHardwareTab() {
-  const specs = [
-    ["Selected Controller", "RP2350"],
-    ["Selected ADC Devices", "MCP3208 x2"],
-    ["Selected PWM Drivers", "IR4427"],
-    ["ADC Usage", "4 / 16"],
-    ["PWM Usage", "3 / 12"],
-    ["Status", "Valid"],
-  ];
+import { useEffect, useMemo, useState } from "react";
+import { addProjectHardwareDevice, fetchLibraryDevices, fetchProjectHardware, removeProjectHardwareDevice } from "../../services/libraryApi.js";
+import { CATEGORY_OPTIONS } from "../../data/hardwareLibrary.js";
 
-  const validationItems = [
-    "Controller supports selected component timing.",
-    "ADC capacity available for analog inputs.",
-    "PWM driver capacity available for outputs.",
-    "No hardware resource conflicts detected.",
-  ];
+function ProjectHardwareTab() {
+  const projectId = 1;
+  const [devices, setDevices] = useState([]);
+  const [selectedDevices, setSelectedDevices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      const [deviceResponse, projectResponse] = await Promise.all([
+        fetchLibraryDevices(),
+        fetchProjectHardware(projectId),
+      ]);
+
+      if (active) {
+        setDevices(deviceResponse.devices || []);
+        setSelectedDevices(projectResponse.devices || []);
+        setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const selectedDeviceMap = useMemo(() => {
+    return selectedDevices.reduce((map, deviceId) => {
+      map[deviceId] = true;
+      return map;
+    }, {});
+  }, [selectedDevices]);
+
+  async function handleAdd(deviceId) {
+    await addProjectHardwareDevice(projectId, deviceId);
+    const response = await fetchProjectHardware(projectId);
+    setSelectedDevices(response.devices || []);
+  }
+
+  async function handleRemove(deviceId) {
+    if (!window.confirm("Remove this device from the project?")) return;
+    await removeProjectHardwareDevice(projectId, deviceId);
+    const response = await fetchProjectHardware(projectId);
+    setSelectedDevices(response.devices || []);
+  }
+
+  const grouped = CATEGORY_OPTIONS.reduce((groups, category) => {
+    groups[category.key] = devices.filter((device) => device.category === category.key);
+    return groups;
+  }, {});
+
+  if (loading) {
+    return (
+      <section className="project-card project-card--full">
+        <p>Loading project hardware...</p>
+      </section>
+    );
+  }
 
   return (
     <section className="project-card project-card--full">
@@ -21,30 +69,35 @@ function ProjectHardwareTab() {
         <h3>Hardware</h3>
       </div>
       <p>
-        Configure hardware for this project. Global hardware definitions are
-        managed in the Library Workspace.
+        Configure hardware for this project. Global hardware definitions are managed in the Library Workspace.
       </p>
 
-      <div className="project-overview-grid">
-        {specs.map(([label, value]) => (
-          <div key={label} className="project-card__item">
-            <div className="project-card__meta">{label}</div>
-            <div className="project-card__item-title">{value}</div>
+      {CATEGORY_OPTIONS.map((category) => (
+        <div key={category.key} className="project-card">
+          <div className="project-card__header">
+            <h4>{category.label}</h4>
           </div>
-        ))}
-      </div>
-
-      <div className="project-card__header">
-        <h4>Hardware Validation</h4>
-      </div>
-      <div className="project-list">
-        {validationItems.map((item, index) => (
-          <div key={item} className="project-card__item">
-            <div className="project-card__meta">Check {index + 1}</div>
-            <div className="project-card__item-title">{item}</div>
+          <div className="project-list">
+            {(grouped[category.key] || []).map((device) => (
+              <div key={device.id} className="project-card__item">
+                <div className="project-card__item-title">{device.name}</div>
+                <div className="project-card__meta">{device.manufacturer}</div>
+                <div className="project-card__actions">
+                  {selectedDeviceMap[device.id] ? (
+                    <button type="button" className="project-button project-button--danger" onClick={() => handleRemove(device.id)}>
+                      Remove From Project
+                    </button>
+                  ) : (
+                    <button type="button" className="project-button project-button--primary" onClick={() => handleAdd(device.id)}>
+                      Add To Project
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </section>
   );
 }

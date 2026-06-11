@@ -2,6 +2,7 @@ import projects from "../data/projects.js";
 import templates from "../data/templates.js";
 import projectComponents from "../data/projectComponents.js";
 import projectConnections from "../data/projectConnections.js";
+import projectHardware from "../data/projectHardware.js";
 
 function getTemplateById(templateId) {
     return templates.find((template) => template.id === templateId);
@@ -61,7 +62,8 @@ export function getProjectById(req, res) {
         name: project.name,
         components: 0,
         connections: 0,
-        hardwareProfile: null
+        hardwareProfile: null,
+        hardwareDevices: projectHardware[projectId] || []
     });
 }
 
@@ -88,6 +90,40 @@ export function deleteProject(req, res) {
     projects.splice(projectIndex, 1);
     delete projectComponents[projectId];
     delete projectConnections[projectId];
+    delete projectHardware[projectId];
+
+    res.status(204).send();
+}
+
+export function getProjectHardware(req, res) {
+    const projectId = Number(req.params.id);
+    res.json({ devices: projectHardware[projectId] || [] });
+}
+
+export function addProjectHardwareDevice(req, res) {
+    const projectId = Number(req.params.id);
+    const { deviceId } = req.body;
+
+    if (!deviceId) {
+        return res.status(400).json({ message: "Invalid hardware device" });
+    }
+
+    if (!projectHardware[projectId]) {
+        projectHardware[projectId] = [];
+    }
+
+    if (!projectHardware[projectId].includes(deviceId)) {
+        projectHardware[projectId].push(deviceId);
+    }
+
+    res.status(201).json({ deviceId });
+}
+
+export function removeProjectHardwareDevice(req, res) {
+    const projectId = Number(req.params.id);
+    const deviceId = req.params.deviceId;
+    const devices = projectHardware[projectId] || [];
+    projectHardware[projectId] = devices.filter((item) => item !== deviceId);
 
     res.status(204).send();
 }

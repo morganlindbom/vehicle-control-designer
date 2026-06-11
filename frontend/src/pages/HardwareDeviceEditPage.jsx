@@ -6,12 +6,20 @@ import {
   DEVICE_TYPES,
   FILE_SECTIONS,
   GENERATOR_RULES,
+  GITHUB_FILE_SECTION_MAP,
+  GITHUB_SOURCE_SECTION_MAP,
   SOURCE_CODE_SECTIONS,
   SPEC_TEMPLATES,
   buildDevicePayload,
   normalizeLibraryDevice,
 } from "../data/hardwareLibrary.js";
-import { fetchLibraryDevice, updateLibraryDevice } from "../services/libraryApi.js";
+import {
+  deleteLibraryDeviceFile,
+  fetchLibraryDevice,
+  fetchLibraryDeviceFiles,
+  updateLibraryDevice,
+  uploadLibraryDeviceFile,
+} from "../services/libraryApi.js";
 
 const editorTabs = [
   { key: "overview", label: "Overview" },
@@ -20,6 +28,7 @@ const editorTabs = [
   { key: "source-code", label: "Source Code" },
   { key: "dependencies", label: "Dependencies" },
   { key: "generator-rules", label: "Generator Rules" },
+  { key: "notes", label: "Notes" },
 ];
 
 function buildEditorState(device) {
@@ -95,34 +104,37 @@ function HardwareDeviceEditPage() {
     }));
   }
 
-  function updateAssetName(section, key, index, value) {
+  async function refreshFiles(section) {
+    const response = await fetchLibraryDeviceFiles(draft.id, section);
+    const files = response.files || [];
     setDraft((current) => ({
       ...current,
-      [section]: {
-        ...current[section],
-        [key]: (current[section]?.[key] || []).map((item, itemIndex) => (itemIndex === index ? value : item)),
+      assets: {
+        ...(current.assets || {}),
+        [section]: files,
       },
     }));
   }
 
-  function addAsset(section, key) {
-    setDraft((current) => ({
-      ...current,
-      [section]: {
-        ...current[section],
-        [key]: [...(current[section]?.[key] || []), "New Asset"],
-      },
-    }));
+  async function handleUploadFile(section) {
+    const fileName = window.prompt("File name");
+    if (!fileName) return;
+    const content = window.prompt("File content (text or base64)", "");
+    await uploadLibraryDeviceFile(draft.id, section, {
+      fileName,
+      contentBase64: btoa(content || ""),
+    });
+    await refreshFiles(section);
   }
 
-  function deleteAsset(section, key, index) {
-    setDraft((current) => ({
-      ...current,
-      [section]: {
-        ...current[section],
-        [key]: (current[section]?.[key] || []).filter((_, itemIndex) => itemIndex !== index),
-      },
-    }));
+  async function handleDeleteFile(section, fileName) {
+    if (!window.confirm(`Delete ${fileName}?`)) return;
+    await deleteLibraryDeviceFile(draft.id, section, fileName);
+    await refreshFiles(section);
+  }
+
+  function handleViewFile(section, fileName) {
+    window.open(`http://localhost:5000/api/library/devices/${draft.id}/files/${section}/${encodeURIComponent(fileName)}`, "_blank");
   }
 
   async function handleSave() {
@@ -348,6 +360,25 @@ function HardwareDeviceEditPage() {
                 <div className="project-card__meta">ai-summary.txt</div>
                 <textarea rows="4" value={draft.generatorRules?.["ai-summary"] || ""} onChange={(event) => updateRule("ai-summary", event.target.value)} />
               </div>
+            </div>
+          </article>
+        ) : null}
+
+        {activeTab === "notes" ? (
+          <article className="project-card">
+            <div className="project-card__header"><h3>Notes</h3></div>
+            <div className="project-list">
+              {(draft.assets?.notes || []).map((file) => (
+                <div key={file.name} className="project-card__item">
+                  <div className="project-card__meta">{file.name}</div>
+                  <div className="project-card__actions">
+                    <button type="button" className="project-button" onClick={() => handleViewFile("notes", file.name)}>View</button>
+                    <button type="button" className="project-button" onClick={() => handleViewFile("notes", file.name)}>Download</button>
+                    <button type="button" className="project-button project-button--danger" onClick={() => handleDeleteFile("notes", file.name)}>Delete</button>
+                  </div>
+                </div>
+              ))}
+              <button type="button" className="project-button project-button--primary" onClick={() => handleUploadFile("notes")}>Upload File</button>
             </div>
           </article>
         ) : null}

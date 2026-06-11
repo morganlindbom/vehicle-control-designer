@@ -3,7 +3,16 @@ import path from "path";
 import hardwareDevices from "../data/hardwareDevices.js";
 
 const DEFAULT_LIBRARY_ROOT = path.resolve(process.cwd(), "../vehicle-control-library");
-const ASSET_DIRS = ["datasheets", "pinouts", "schematics", "images", "source", "examples", "generator"];
+const ASSET_DIRS = ["datasheets", "pinouts", "schematics", "images", "source", "examples", "notes"];
+const FILE_GROUPS = {
+  datasheets: [".pdf", ".md", ".txt"],
+  pinouts: [".png", ".jpg", ".jpeg", ".svg", ".pdf"],
+  schematics: [".pdf", ".sch", ".kicad_sch", ".png", ".jpg", ".jpeg"],
+  images: [".png", ".jpg", ".jpeg", ".svg", ".webp"],
+  source: [".h", ".hpp", ".c", ".cpp", ".ino", ".txt", ".md"],
+  examples: [".h", ".hpp", ".c", ".cpp", ".ino", ".txt", ".md"],
+  notes: [".md", ".txt"],
+};
 
 function getLibraryRoot() {
   return path.resolve(process.env.VEHICLE_CONTROL_LIBRARY_ROOT || DEFAULT_LIBRARY_ROOT);
@@ -36,6 +45,14 @@ async function listFiles(dirPath) {
       path: path.join(dirPath, entry.name),
     }))
     .sort((left, right) => left.name.localeCompare(right.name));
+}
+
+async function readFileBuffer(filePath) {
+  return fs.readFile(filePath);
+}
+
+function getRelativeAssetPath(record, section, fileName) {
+  return path.join(record.githubFolder || `devices/${record.id}`, section, fileName);
 }
 
 function getRecordById(deviceId) {
@@ -96,6 +113,68 @@ export async function getLibraryDevice(deviceId) {
     files: fileData.rootFiles,
     assets: fileData.assets,
   };
+}
+
+export async function listDeviceFiles(deviceId, section) {
+  const record = getRecordById(deviceId);
+  if (!record) return null;
+
+  const folder = path.join(getDeviceFolder(record), section);
+  const files = await listFiles(folder);
+  return files.map((file) => ({
+    name: file.name,
+    path: getRelativeAssetPath(record, section, file.name),
+    section,
+  }));
+}
+
+export async function getDeviceFile(deviceId, section, fileName) {
+  const record = getRecordById(deviceId);
+  if (!record) return null;
+
+  const filePath = path.join(getDeviceFolder(record), section, fileName);
+  if (!(await pathExists(filePath))) return null;
+
+  return {
+    name: fileName,
+    path: getRelativeAssetPath(record, section, fileName),
+    section,
+    content: await readFileBuffer(filePath),
+  };
+}
+
+export async function uploadDeviceFile(deviceId, section, fileName, contentBase64) {
+  const record = getRecordById(deviceId);
+  if (!record) return null;
+
+  const normalizedSection = String(section || "").toLowerCase();
+  const allowedExtensions = FILE_GROUPS[normalizedSection] || [];
+  const extension = path.extname(fileName).toLowerCase();
+
+  if (allowedExtensions.length && !allowedExtensions.includes(extension)) {
+    const error = new Error("Unsupported file type");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const folder = path.join(getDeviceFolder(record), normalizedSection);
+  await fs.mkdir(folder, { recursive: true });
+  const filePath = path.join(folder, fileName);
+  const buffer = Buffer.from(contentBase64, "base64");
+  await fs.writeFile(filePath, buffer);
+
+  return getDeviceFile(deviceId, normalizedSection, fileName);
+}
+
+export async function deleteDeviceFile(deviceId, section, fileName) {
+  const record = getRecordById(deviceId);
+  if (!record) return false;
+
+  const filePath = path.join(getDeviceFolder(record), section, fileName);
+  if (!(await pathExists(filePath))) return false;
+
+  await fs.unlink(filePath);
+  return true;
 }
 
 export async function searchLibraryDevices(query = "") {

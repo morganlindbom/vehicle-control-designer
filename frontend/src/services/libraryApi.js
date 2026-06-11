@@ -58,3 +58,37 @@ export function deleteLibraryDevice(deviceId) {
     method: "DELETE",
   });
 }
+
+export function fetchLibraryDeviceFiles(deviceId, section) {
+  return request(`/devices/${encodeURIComponent(deviceId)}/files/${encodeURIComponent(section)}`);
+}
+
+export function uploadLibraryDeviceFile(deviceId, section, payload) {
+  return request(`/devices/${encodeURIComponent(deviceId)}/files/${encodeURIComponent(section)}`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteLibraryDeviceFile(deviceId, section, fileName) {
+  return request(`/devices/${encodeURIComponent(deviceId)}/files/${encodeURIComponent(section)}/${encodeURIComponent(fileName)}`, {
+    method: "DELETE",
+  });
+}
+
+export function fetchProjectHardware(projectId) {
+  return request(`http://localhost:5000/api/projects/${encodeURIComponent(projectId)}/hardware`);
+}
+
+export function addProjectHardwareDevice(projectId, deviceId) {
+  return request(`http://localhost:5000/api/projects/${encodeURIComponent(projectId)}/hardware`, {
+    method: "POST",
+    body: JSON.stringify({ deviceId }),
+  });
+}
+
+export function removeProjectHardwareDevice(projectId, deviceId) {
+  return request(`http://localhost:5000/api/projects/${encodeURIComponent(projectId)}/hardware/${encodeURIComponent(deviceId)}`, {
+    method: "DELETE",
+  });
+}
