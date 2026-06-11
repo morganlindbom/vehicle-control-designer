@@ -5,7 +5,20 @@ import templateRoutes from "./routes/templateRoutes.js";
 
 const app = express();
 
-app.use(cors());
+app.disable("x-powered-by");
+
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+app.use(
+    cors({
+        origin: allowedOrigins,
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        credentials: false
+    })
+);
 app.use(express.json());
 
 app.get("/", (req, res) => {
