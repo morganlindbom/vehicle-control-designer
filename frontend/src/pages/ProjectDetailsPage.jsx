@@ -482,41 +482,48 @@ function ProjectDetailsPage() {
         <div className="project-workspace__header">
           <div className="project-workspace__titleblock">
             <div className="project-workspace__breadcrumb">
-              <Link to="/projects">Projects</Link>
+              <Link to="/project/projects">Projects</Link>
               <span>&gt;</span>
               <span>{project.name}</span>
             </div>
             <h2>{project.name}</h2>
             <p className="project-card__meta">Project Workspace</p>
           </div>
-          <Link className="project-button" to="/projects">
+          <Link className="project-button" to="/project/projects">
             Back to projects
           </Link>
         </div>
 
         <nav className="project-tabs" aria-label="Project workspace tabs">
-          <NavLink end to={`/projects/${id}`} className="project-tabs__link">
+          <NavLink
+            end
+            to={`/project/projects/${id}`}
+            className="project-tabs__link"
+          >
             Overview
           </NavLink>
           <NavLink
-            to={`/projects/${id}/architecture`}
+            to={`/project/projects/${id}/architecture`}
             className="project-tabs__link"
           >
             Architecture
           </NavLink>
           <NavLink
-            to={`/projects/${id}/hardware`}
+            to={`/project/projects/${id}/hardware`}
             className="project-tabs__link"
           >
             Hardware
           </NavLink>
           <NavLink
-            to={`/projects/${id}/validation`}
+            to={`/project/projects/${id}/validation`}
             className="project-tabs__link"
           >
             Validation
           </NavLink>
-          <NavLink to={`/projects/${id}/json`} className="project-tabs__link">
+          <NavLink
+            to={`/project/projects/${id}/json`}
+            className="project-tabs__link"
+          >
             Generated JSON
           </NavLink>
         </nav>

@@ -75,7 +75,15 @@
   text-decoration: none;
 }
 
+.project-tabs__link--button {
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
 .project-tabs__link.active,
+.project-tabs__link--active,
 .project-tabs__link:hover {
   background: #fff;
   border-color: var(--border);
@@ -161,6 +169,66 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.hardware-asset-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.hardware-asset-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.hardware-asset-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.hardware-asset-card__header h4 {
+  margin: 0;
+}
+
+.hardware-asset-card__upload input {
+  display: none;
+}
+
+.hardware-asset-card__list {
+  display: grid;
+  gap: 10px;
+}
+
+.hardware-asset-item {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}
+
+.hardware-asset-list {
+  display: grid;
+  gap: 8px;
+}
+
+.hardware-asset-list__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.hardware-asset-list__actions,
+.hardware-empty-state {
+  color: var(--text);
+  font-size: 13px;
 }
 
 .project-button {

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import projectRoutes from "./routes/projectRoutes.js";
 import templateRoutes from "./routes/templateRoutes.js";
+import libraryRoutes from "./routes/libraryRoutes.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/projects", projectRoutes);
 app.use("/api/templates", templateRoutes);
+app.use("/api/library", libraryRoutes);
 
 const PORT = 5000;
 

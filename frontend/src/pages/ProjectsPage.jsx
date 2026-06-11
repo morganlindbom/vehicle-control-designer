@@ -22,7 +22,7 @@ function ProjectsPage() {
             <div className="project-card__actions">
               <Link
                 className="project-button project-button--primary"
-                to={`/projects/${project.id}`}
+                to={`/project/projects/${project.id}`}
               >
                 Open Project
               </Link>

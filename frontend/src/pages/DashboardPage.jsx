@@ -2,26 +2,36 @@ import { Link } from "react-router-dom";
 
 function getQuickActionHref(action) {
   if (action === "Create Project") {
-    return "/projects";
+    return "/project/projects";
   }
 
-  if (action === "Open Templates") {
-    return "/templates";
+  if (action === "Open Project Dashboard") {
+    return "/project/dashboard";
   }
 
-  if (action === "Open Hardware Profiles") {
-    return "/hardware";
+  if (action === "Open Validation") {
+    return "/project/validation";
   }
 
-  if (action === "Generate Code") {
-    return "/generator/code";
+  if (action === "Open JSON Preview") {
+    return "/project/json";
   }
 
-  return "/generator/firmware";
+  return "/project/code-generator";
 }
 
 function DashboardPage() {
   const recentProjects = ["Scooter V1", "Robot V1", "Electric Bike V1"];
+  const recentBuilds = [
+    "Scooter V1 firmware generated",
+    "Robot V1 architecture validated",
+    "Electric Bike V1 JSON exported",
+  ];
+  const validationSummary = [
+    ["Errors", "1"],
+    ["Warnings", "1"],
+    ["Info", "2"],
+  ];
   const systemStatus = [
     ["Backend Status", "Online"],
     ["Template Count", "12"],
@@ -30,22 +40,17 @@ function DashboardPage() {
   ];
   const quickActions = [
     "Create Project",
-    "Open Templates",
-    "Open Hardware Profiles",
+    "Open Project Dashboard",
+    "Open Validation",
+    "Open JSON Preview",
     "Generate Code",
-    "Generate Firmware",
-  ];
-  const activityFeed = [
-    "Scooter V1 updated architecture view",
-    "Robot V1 connection validated",
-    "Electric Bike V1 opened from projects",
   ];
 
   const content = (
     <section className="project-workspace">
       <div className="project-card project-card--full">
         <div className="project-card__header">
-          <h2>Dashboard</h2>
+          <h2>Project Dashboard</h2>
         </div>
 
         <div className="project-overview-grid">
@@ -58,11 +63,34 @@ function DashboardPage() {
                   <div className="project-card__actions">
                     <Link
                       className="project-button project-button--primary"
-                      to="/projects"
+                      to="/project/projects"
                     >
                       Open Project
                     </Link>
                   </div>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="project-card">
+            <h3>Recent Builds</h3>
+            <div className="project-list">
+              {recentBuilds.map((build) => (
+                <div key={build} className="project-card__item">
+                  <div className="project-card__item-title">{build}</div>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="project-card">
+            <h3>Validation Summary</h3>
+            <div className="project-overview-grid">
+              {validationSummary.map(([label, value]) => (
+                <div key={label} className="project-card__item">
+                  <div className="project-card__meta">{label}</div>
+                  <div className="project-card__item-title">{value}</div>
                 </div>
               ))}
             </div>
@@ -91,17 +119,6 @@ function DashboardPage() {
                 >
                   {action}
                 </Link>
-              ))}
-            </div>
-          </article>
-
-          <article className="project-card">
-            <h3>Recent Activity</h3>
-            <div className="project-list">
-              {activityFeed.map((entry) => (
-                <div key={entry} className="project-card__item">
-                  <div className="project-card__meta">{entry}</div>
-                </div>
               ))}
             </div>
           </article>

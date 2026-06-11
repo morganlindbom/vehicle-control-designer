@@ -1,24 +1,52 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import "../styles/dashboard.css";
 
-const sidebarItems = [
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/projects", label: "Projects" },
-  { to: "/templates", label: "Templates" },
-  { to: "/hardware", label: "Hardware" },
-  { to: "/json", label: "JSON Preview" },
-  { to: "/generator/code", label: "Code Generator" },
-  { to: "/generator/firmware", label: "Firmware Generator" },
-  { to: "/settings", label: "Settings" },
-];
+const workspaceConfig = {
+  project: {
+    label: "Project Workspace",
+    eyebrow: "Build Vehicles",
+    home: "/project/dashboard",
+    sidebarItems: [
+      { to: "/project/dashboard", label: "Dashboard" },
+      { to: "/project/projects", label: "Projects" },
+      { to: "/project/validation", label: "Validation" },
+      { to: "/project/json", label: "JSON Preview" },
+      { to: "/project/code-generator", label: "Code Generator" },
+      { to: "/project/firmware-generator", label: "Firmware Generator" },
+    ],
+  },
+  library: {
+    label: "Library Workspace",
+    eyebrow: "Build Reusable Assets",
+    home: "/library/dashboard",
+    sidebarItems: [
+      { to: "/library/dashboard", label: "Library Dashboard" },
+      { to: "/library/templates", label: "Templates" },
+      { to: "/library/hardware", label: "Hardware Library" },
+      { to: "/library/profiles", label: "Profiles" },
+      { to: "/library/settings", label: "Settings" },
+    ],
+  },
+};
+
+function getWorkspaceKey(pathname) {
+  return pathname.startsWith("/library") ? "library" : "project";
+}
 
 function DashboardLayout() {
+  const location = useLocation();
+  const workspaceKey = getWorkspaceKey(location.pathname);
+  const workspace = workspaceConfig[workspaceKey];
+
   return (
     <div className="dashboard-shell">
       <aside className="dashboard-sidebar">
-        <div className="dashboard-sidebar__brand">Vehicle Control Designer</div>
+        <Link className="dashboard-sidebar__brand" to={workspace.home}>
+          Vehicle Control Designer
+        </Link>
+        <div className="dashboard-sidebar__workspace">{workspace.label}</div>
         <nav className="dashboard-sidebar__nav" aria-label="Main navigation">
-          {sidebarItems.map((item) => (
+          {workspace.sidebarItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -38,10 +66,32 @@ function DashboardLayout() {
         <header className="dashboard-topbar">
           <div>
             <span className="dashboard-topbar__eyebrow">
-              Engineering Platform
+              Engineering Platform · {workspace.eyebrow}
             </span>
             <h1>Vehicle Control Designer</h1>
           </div>
+          <nav className="workspace-switcher" aria-label="Workspace switcher">
+            <NavLink
+              to="/project/dashboard"
+              className={
+                workspaceKey === "project"
+                  ? "workspace-switcher__link workspace-switcher__link--active"
+                  : "workspace-switcher__link"
+              }
+            >
+              Project Workspace
+            </NavLink>
+            <NavLink
+              to="/library/dashboard"
+              className={
+                workspaceKey === "library"
+                  ? "workspace-switcher__link workspace-switcher__link--active"
+                  : "workspace-switcher__link"
+              }
+            >
+              Library Workspace
+            </NavLink>
+          </nav>
         </header>
 
         <main className="dashboard-content">
